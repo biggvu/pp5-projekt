@@ -8,18 +8,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const customColorDiv = document.getElementById("customColorDiv");
     const customColorInput = document.getElementById("customColor");
 
-    // obsługa zmiany pola "Postać leku"
+    // Obsługa zmiany pola "Postać leku"
     formSelect.addEventListener("change", function () {
         const selectedValue = formSelect.value;
 
-        // opcja wyboru nadruku/graweru tylko po wybraniu pola "Tabletka" albo "Kapsułka"
         if (selectedValue === "tablet" || selectedValue === "capsule") {
             tabletOptions.classList.remove("d-none");
         } else {
             tabletOptions.classList.add("d-none");
         }
 
-        // opcja wyboru kształtu tylko po wybraniu pola "Tabletka"
         if (selectedValue === "tablet") {
             shapeField.classList.remove("d-none");
             shapeSelect.setAttribute("required", "required");
@@ -29,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // obsługa zmiany w polu "Kolor"
+    // Obsługa zmiany w polu "Kolor"
     colorSelect.addEventListener("change", function () {
         if (colorSelect.value === "custom") {
             customColorDiv.classList.remove("d-none");
@@ -38,11 +36,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // obsługa wysyłania formularza
-    form.addEventListener("submit", function (event) {
+    // Obsługa wysyłania formularza
+    form.addEventListener("submit", async function (event) {
         event.preventDefault();
 
-        // pobranie danych z formularza
         const formData = {
             form: formSelect.value,
             color: colorSelect.value === "custom" ? customColorInput.value : colorSelect.value,
@@ -52,16 +49,27 @@ document.addEventListener("DOMContentLoaded", function () {
             comments: document.getElementById("comments").value
         };
 
-        // wyświetlenie danyuch w konsoli
         console.log("Dane z formularza:", formData);
 
-        // wyświetlenie komunikatu po wysłaniu
-        alert("Formularz został wysłany!");
+        try {
+            const response = await fetch("http://localhost:2137/send-to-sheets", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData),
+            });
 
-        // reset formularza do wartości domyślnych
+            if (response.ok) {
+                alert("Formularz został pomyślnie zapisany w Google Sheets!");
+            } else {
+                throw new Error("Wystąpił problem podczas zapisu danych.");
+            }
+        } catch (error) {
+            console.error("Błąd:", error);
+            alert("Wystąpił problem podczas zapisu danych. Sprawdź konsolę.");
+        }
+
         form.reset();
 
-        // ukrycie opcji nadruku/graweru i niestandardowego koloru po resecie
         tabletOptions.classList.add("d-none");
         customColorDiv.classList.add("d-none");
         shapeField.classList.add("d-none");
